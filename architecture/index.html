@@ -497,6 +497,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -513,6 +531,47 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#resolve-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolve order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hydrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hydrate
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -619,6 +678,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#resolve-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolve order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hydrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hydrate
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -638,20 +727,33 @@
 
 
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
-<p>Shared contract: MongoDB collection <code>media.cover_art_cache</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Walker / website3
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      │
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>      ▼
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a> media_cover_art (identity → Arr/TMDB → cache)
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      │
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      ▼
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a> cover_art_cache (cache_key, status, remote_url, local_path?, …)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Walker / website3 / converter push
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>              │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>              ▼
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>     media_cover_art.CoverArtClient
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>              │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>     ┌────────┴────────┐
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>     ▼                 ▼
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a> Arr (Radarr/Sonarr)  TMDB
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>     │                 │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>     └────────┬────────┘
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>              ▼
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>   MongoDB media.cover_art_cache
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>   (cache_key, status, remote_url, local_path?, …)
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>              │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>              ▼
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>   optional host-local cache_dir bytes
 </code></pre></div>
-<ul>
-<li><strong><code>remote_url</code></strong> is the cross-host value (Walker prefetch + push notifications).</li>
-<li><strong><code>local_path</code></strong> is optional and host-specific (website FastAPI disk cache).</li>
-</ul>
-<p>Full resolve/hydrate flow is implemented in Phase 1+.</p>
+<h2 id="resolve-order">Resolve order<a class="headerlink" href="#resolve-order" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Parse path → identity / <code>cache_key</code></li>
+<li>Honor negative-cache TTLs (<code>missing</code> 7d, <code>error</code> 2m)</li>
+<li>Film: Radarr library → lookup → TMDB</li>
+<li>TV: Sonarr series poster → lookup → TMDB</li>
+<li>Persist <code>ready</code> with <code>remote_url</code>; write local bytes only if <code>cache_dir</code> set</li>
+</ol>
+<h2 id="hydrate">Hydrate<a class="headerlink" href="#hydrate" title="Permanent link">&para;</a></h2>
+<p><code>status=ready</code> + <code>remote_url</code> + missing local file + <code>cache_dir</code> set → download <code>remote_url</code> into cache without Arr re-query.</p>
 
 
 

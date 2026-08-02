@@ -640,11 +640,21 @@
 
 
 <h1 id="walker-usage">Walker usage<a class="headerlink" href="#walker-usage" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Phase 2</p>
-<p>Walker integration (<code>ensure_posters</code> after new-file discovery) lands after the sync client.</p>
-</div>
-<p>Intended call site: convert-to-h265 <code>CodecDetector</code> after a successful bulk upsert of new paths.</p>
+<p>After new media is upserted, call :meth:<code>~media_cover_art.CoverArtClient.ensure_posters</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">media_cover_art</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoverArtClient</span><span class="p">,</span> <span class="n">CoverArtSettings</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">CoverArtSettings</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>  <span class="c1"># metadata-only when cache_dir unset</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">client</span> <span class="o">=</span> <span class="n">CoverArtClient</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">collection</span><span class="o">=</span><span class="n">cover_art_cache_collection</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Prefer a background thread so the folder walk stays fast</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">client</span><span class="o">.</span><span class="n">ensure_posters</span><span class="p">(</span><span class="n">new_filenames</span><span class="p">)</span>
+</code></pre></div>
+<p>Notes:</p>
+<ul>
+<li>Dedupes by <code>cache_key</code> (many episodes → one series poster).</li>
+<li>Soft-fails per title; discovery must not abort on Arr errors.</li>
+<li>Unknown paths (not under <code>Films</code>/<code>TV</code>) are skipped.</li>
+</ul>
 
 
 

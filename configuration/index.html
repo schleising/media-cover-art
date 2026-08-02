@@ -327,6 +327,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -343,6 +361,58 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keys-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keys file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hybrid-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid hosts
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -619,6 +689,47 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keys-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keys file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hybrid-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid hosts
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -638,37 +749,98 @@
 
 
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Phase 1</p>
-<p><code>CoverArtSettings</code> and env loading land in Phase 1. This page will document Arr/TMDB keys, Mongo URI, cache directory, and TTLs.</p>
-</div>
-<p>Planned settings (design):</p>
+<p>Runtime settings come from :class:<code>~media_cover_art.CoverArtSettings</code>.</p>
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Setting</th>
-<th>Role</th>
+<th>Variable</th>
+<th>Alias</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Sonarr / Radarr URL + API key</td>
-<td>Primary poster source</td>
+<td><code>MEDIA_COVER_ART_MONGO_URI</code></td>
+<td><code>DB_URL</code></td>
+<td>Mongo connection URI</td>
 </tr>
 <tr>
-<td>TMDB API key</td>
-<td>Fallback search</td>
+<td><code>MEDIA_COVER_ART_MONGO_DB</code></td>
+<td><code>DB_NAME</code></td>
+<td>Database (default <code>media</code>)</td>
 </tr>
 <tr>
-<td>Mongo URI / DB / collection</td>
-<td>Shared <code>cover_art_cache</code></td>
+<td><code>MEDIA_COVER_ART_MONGO_COLLECTION</code></td>
+<td>—</td>
+<td>Collection (default <code>cover_art_cache</code>)</td>
 </tr>
 <tr>
-<td><code>cache_dir</code></td>
-<td>Optional host-local poster bytes (<code>None</code> = metadata-only)</td>
+<td><code>MEDIA_COVER_ART_CACHE_DIR</code></td>
+<td><code>CONVERTER_ART_CACHE_DIR</code></td>
+<td>Local poster dir; omit for metadata-only</td>
+</tr>
+<tr>
+<td><code>MEDIA_COVER_ART_PLACEHOLDER_URL</code></td>
+<td>—</td>
+<td>Placeholder image URL for UI</td>
+</tr>
+<tr>
+<td><code>SONARR_URL</code> / <code>RADARR_URL</code></td>
+<td>—</td>
+<td>Arr base URLs</td>
+</tr>
+<tr>
+<td><code>SONARR_API_KEY</code> / <code>RADARR_API_KEY</code></td>
+<td>keys file</td>
+<td>Arr API keys</td>
+</tr>
+<tr>
+<td><code>TMDB_API_KEY</code></td>
+<td>keys file <code>tmdb_key</code></td>
+<td>TMDB fallback</td>
 </tr>
 </tbody>
 </table>
+<h2 id="keys-file">Keys file<a class="headerlink" href="#keys-file" title="Permanent link">&para;</a></h2>
+<p>Optional <code>key=value</code> file (first existing wins):</p>
+<ol>
+<li>Path passed to <code>CoverArtSettings.from_env(keys_file=…)</code></li>
+<li><code>/run/secrets/arr-keys.txt</code></li>
+<li><code>/app/secrets/arr-keys.txt</code></li>
+</ol>
+<p>Expected keys: <code>sonarr_key</code>, <code>radarr_key</code>, optional <code>tmdb_key</code> / <code>tmdb_api_key</code>.</p>
+<h2 id="hybrid-hosts">Hybrid hosts<a class="headerlink" href="#hybrid-hosts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Host</th>
+<th><code>cache_dir</code></th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Walker (NAS)</td>
+<td>unset</td>
+<td>Writes Mongo <code>ready</code> + <code>remote_url</code> only</td>
+</tr>
+<tr>
+<td>website3 FastAPI</td>
+<td><code>/var/cache/converter-art</code></td>
+<td>Hydrates local bytes; serves <code>art/{key}</code></td>
+</tr>
+<tr>
+<td>Converter push</td>
+<td>unset</td>
+<td>Reads <code>remote_url</code> for notification images</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">media_cover_art</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoverArtSettings</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">CoverArtSettings</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>  <span class="c1"># Walker: no cache dir</span>
+</code></pre></div>
 
 
 
