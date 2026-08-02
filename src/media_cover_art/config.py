@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from functools import lru_cache
@@ -21,6 +22,8 @@ _KEY_FILE_CANDIDATES = (
     Path("/run/secrets/arr-keys.txt"),
     Path("/app/secrets/arr-keys.txt"),
 )
+
+logger = logging.getLogger("media_cover_art.config")
 
 
 @dataclass(frozen=True)
@@ -45,6 +48,10 @@ class CoverArtSettings:
         user_agent: HTTP User-Agent for Arr/TMDB requests.
         connect_timeout_seconds: HTTP connect timeout.
         read_timeout_seconds: HTTP read timeout.
+        sonarr_api_key_source: Where the Sonarr key was loaded from, if any.
+        radarr_api_key_source: Where the Radarr key was loaded from, if any.
+        tmdb_api_key_source: Where the TMDB key was loaded from, if any.
+        keys_file_path: Keys file that was loaded, if any.
     """
 
     sonarr_url: str = DEFAULT_SONARR_URL
@@ -64,6 +71,23 @@ class CoverArtSettings:
     user_agent: str = "media-cover-art/1.0"
     connect_timeout_seconds: float = 10.0
     read_timeout_seconds: float = 30.0
+    sonarr_api_key_source: str | None = None
+    radarr_api_key_source: str | None = None
+    tmdb_api_key_source: str | None = None
+    keys_file_path: str | None = None
+
+    def log_key_status(self) -> None:
+        """Log whether Sonarr, Radarr, and TMDB API keys were found."""
+        if self.keys_file_path:
+            logger.info("Arr keys file found: %s", self.keys_file_path)
+        else:
+            logger.info(
+                "Arr keys file not found (checked explicit path, "
+                "/run/secrets/arr-keys.txt, /app/secrets/arr-keys.txt)"
+            )
+        _log_one_key("Sonarr", self.sonarr_api_key, self.sonarr_api_key_source)
+        _log_one_key("Radarr", self.radarr_api_key, self.radarr_api_key_source)
+        _log_one_key("TMDB", self.tmdb_api_key, self.tmdb_api_key_source)
 
     @classmethod
     def from_env(
@@ -84,7 +108,7 @@ class CoverArtSettings:
         Returns:
             Populated settings instance.
         """
-        keys = load_arr_keys(keys_file)
+        file_keys, loaded_keys_file = load_arr_keys_with_path(keys_file)
         resolved_cache = cache_dir
         if resolved_cache is None:
             raw_cache = _first_env(
@@ -102,18 +126,33 @@ class CoverArtSettings:
         )
         assert mongo_uri is not None
 
+        sonarr_key, sonarr_source = _resolve_secret(
+            env_names=("SONARR_API_KEY",),
+            file_keys=file_keys,
+            file_names=("sonarr_key",),
+            keys_file=loaded_keys_file,
+        )
+        radarr_key, radarr_source = _resolve_secret(
+            env_names=("RADARR_API_KEY",),
+            file_keys=file_keys,
+            file_names=("radarr_key",),
+            keys_file=loaded_keys_file,
+        )
+        tmdb_key, tmdb_source = _resolve_secret(
+            env_names=("TMDB_API_KEY",),
+            file_keys=file_keys,
+            file_names=("tmdb_key", "tmdb_api_key"),
+            keys_file=loaded_keys_file,
+        )
+
         return cls(
             sonarr_url=_first_env("SONARR_URL", default=DEFAULT_SONARR_URL)
             or DEFAULT_SONARR_URL,
             radarr_url=_first_env("RADARR_URL", default=DEFAULT_RADARR_URL)
             or DEFAULT_RADARR_URL,
-            sonarr_api_key=_first_env("SONARR_API_KEY") or keys.get("sonarr_key"),
-            radarr_api_key=_first_env("RADARR_API_KEY") or keys.get("radarr_key"),
-            tmdb_api_key=(
-                _first_env("TMDB_API_KEY")
-                or keys.get("tmdb_key")
-                or keys.get("tmdb_api_key")
-            ),
+            sonarr_api_key=sonarr_key,
+            radarr_api_key=radarr_key,
+            tmdb_api_key=tmdb_key,
             mongo_uri=mongo_uri,
             mongo_db=_first_env("MEDIA_COVER_ART_MONGO_DB", "DB_NAME", default="media")
             or "media",
@@ -128,6 +167,10 @@ class CoverArtSettings:
                 default=DEFAULT_PLACEHOLDER_ART_URL,
             )
             or DEFAULT_PLACEHOLDER_ART_URL,
+            sonarr_api_key_source=sonarr_source,
+            radarr_api_key_source=radarr_source,
+            tmdb_api_key_source=tmdb_source,
+            keys_file_path=str(loaded_keys_file) if loaded_keys_file else None,
         )
 
     @classmethod
@@ -161,6 +204,21 @@ def load_arr_keys(keys_file: Path | str | None = None) -> dict[str, str]:
     Returns:
         Mapping of key names to values (empty if no file found).
     """
+    keys, _path = load_arr_keys_with_path(keys_file)
+    return keys
+
+
+def load_arr_keys_with_path(
+    keys_file: Path | str | None = None,
+) -> tuple[dict[str, str], Path | None]:
+    """Load Arr keys and return ``(keys, path_used)``.
+
+    Args:
+        keys_file: Explicit path, or search default candidate paths.
+
+    Returns:
+        Parsed keys and the path that was loaded, or ``({}, None)``.
+    """
     candidates: list[Path] = []
     if keys_file is not None:
         candidates.append(Path(keys_file))
@@ -170,12 +228,10 @@ def load_arr_keys(keys_file: Path | str | None = None) -> dict[str, str]:
         if not candidate.exists():
             continue
         try:
-            return _parse_keys_file(candidate)
+            return _parse_keys_file(candidate), candidate
         except (OSError, ValueError) as exc:
-            import logging
-
-            logging.warning("Failed to read Arr keys from %s: %s", candidate, exc)
-    return {}
+            logger.warning("Failed to read Arr keys from %s: %s", candidate, exc)
+    return {}, None
 
 
 @lru_cache(maxsize=8)
@@ -208,6 +264,36 @@ def _first_env(*names: str, default: str | None = None) -> str | None:
         if value:
             return value
     return default
+
+
+def _resolve_secret(
+    *,
+    env_names: tuple[str, ...],
+    file_keys: dict[str, str],
+    file_names: tuple[str, ...],
+    keys_file: Path | None,
+) -> tuple[str | None, str | None]:
+    for env_name in env_names:
+        value = os.getenv(env_name, "").strip()
+        if value:
+            return value, f"environment {env_name}"
+    for file_name in file_names:
+        value = file_keys.get(file_name, "").strip()
+        if value:
+            source = (
+                f"keys file {keys_file} ({file_name})"
+                if keys_file is not None
+                else f"keys file ({file_name})"
+            )
+            return value, source
+    return None, None
+
+
+def _log_one_key(label: str, value: str | None, source: str | None) -> None:
+    if value:
+        logger.info("%s API key found (%s)", label, source or "present")
+    else:
+        logger.warning("%s API key not found", label)
 
 
 def art_url_for_cache_key(

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Log clear Sonarr / Radarr / TMDB key found-or-not status (with source) when constructing `CoverArtClient`
+
 ## 0.1.1
 
 - Fix `CoverArtClient` init: compare injected pymongo collections with `is not None` (collections are not truthy)

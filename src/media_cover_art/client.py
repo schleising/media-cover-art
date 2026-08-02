@@ -59,6 +59,7 @@ class CoverArtClient:
         self._tmdb = TmdbClient(settings, self._http)
         self._indexes_ready = False
         self._errors_cleared = False
+        settings.log_key_status()
 
     def close(self) -> None:
         """Close the owned HTTP client, if any."""
