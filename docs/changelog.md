@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Also look for Arr keys at `/src/secrets/arr-keys.txt` (convert-to-h265 Walker mount)
+
 ## 0.1.2
 
 - Log clear Sonarr / Radarr / TMDB key found-or-not status (with source) when constructing `CoverArtClient`

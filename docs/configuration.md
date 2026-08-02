@@ -22,6 +22,7 @@ Optional `key=value` file (first existing wins):
 1. Path passed to `CoverArtSettings.from_env(keys_file=…)`
 2. `/run/secrets/arr-keys.txt`
 3. `/app/secrets/arr-keys.txt`
+4. `/src/secrets/arr-keys.txt` (convert-to-h265 Walker mount)
 
 Expected keys: `sonarr_key`, `radarr_key`, optional `tmdb_key` / `tmdb_api_key`.
 

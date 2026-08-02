@@ -21,6 +21,7 @@ MAX_POSTER_BYTES = 5 * 1024 * 1024
 _KEY_FILE_CANDIDATES = (
     Path("/run/secrets/arr-keys.txt"),
     Path("/app/secrets/arr-keys.txt"),
+    Path("/src/secrets/arr-keys.txt"),  # convert-to-h265 walker mount
 )
 
 logger = logging.getLogger("media_cover_art.config")
@@ -83,7 +84,8 @@ class CoverArtSettings:
         else:
             logger.info(
                 "Arr keys file not found (checked explicit path, "
-                "/run/secrets/arr-keys.txt, /app/secrets/arr-keys.txt)"
+                "/run/secrets/arr-keys.txt, /app/secrets/arr-keys.txt, "
+                "/src/secrets/arr-keys.txt)"
             )
         _log_one_key("Sonarr", self.sonarr_api_key, self.sonarr_api_key_source)
         _log_one_key("Radarr", self.radarr_api_key, self.radarr_api_key_source)
