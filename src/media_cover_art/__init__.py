@@ -63,4 +63,4 @@ __all__ = [
     "titles_match_exact",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

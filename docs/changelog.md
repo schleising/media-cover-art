@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Fix `CoverArtClient` init: compare injected pymongo collections with `is not None` (collections are not truthy)
+
 ## 0.1.0
 
 - Sync `CoverArtClient` with Arr → TMDB resolve, Mongo cache, optional disk

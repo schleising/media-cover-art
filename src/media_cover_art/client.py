@@ -49,7 +49,11 @@ class CoverArtClient:
         self._http = http_client or httpx.Client(
             timeout=timeout, follow_redirects=True
         )
-        resolved = collection or open_collection(settings, database=database)
+        resolved = (
+            collection
+            if collection is not None
+            else open_collection(settings, database=database)
+        )
         self._cache = CoverArtCache(settings, resolved)
         self._arr = ArrClient(settings, self._http)
         self._tmdb = TmdbClient(settings, self._http)
