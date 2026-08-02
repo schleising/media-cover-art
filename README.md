@@ -14,7 +14,7 @@ The sync client (`ensure_posters`, resolve, purge) follows in a later phase.
 ## Install
 
 ```bash
-pip install "media-cover-art @ git+https://github.com/schleising/media-cover-art.git@main"
+pip install "media-cover-art @ git+https://github.com/schleising/media-cover-art.git@v0.1.0"
 ```
 
 Editable (local sibling checkout):
@@ -29,26 +29,24 @@ With docs extras:
 pip install -e ".[docs,dev]"
 ```
 
-## Quick start (Phase 0)
+## Quick start
 
 ```python
-from media_cover_art import parse_media_identity, cache_key_for_path
+from media_cover_art import CoverArtClient, CoverArtSettings, parse_media_identity
 
 identity = parse_media_identity(
     "/Media/Films/1917 (2019)/1917 (2019) Bluray-1080p.mkv"
 )
 assert identity.cache_key == "film:1917:2019"
-assert cache_key_for_path(identity.source_path) == identity.cache_key
+
+with CoverArtClient(CoverArtSettings.from_env()) as client:
+    client.ensure_posters([identity.source_path])
 ```
 
 ## Documentation
 
-```bash
-pip install -e ".[docs]"
-mkdocs serve
-```
-
-Then open the local MkDocs Material site (default `http://127.0.0.1:8000`).
+- Published: https://schleising.github.io/media-cover-art/
+- Local: `pip install -e ".[docs]" && mkdocs serve`
 
 ## Development
 

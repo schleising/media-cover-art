@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased (0.1.0.dev0)
+## 0.1.0
 
-### Phase 0
+- Sync `CoverArtClient` with Arr → TMDB resolve, Mongo cache, optional disk
+- `ensure_posters` (Walker prefetch), hydrate-on-miss, purge, async helpers
+- MkDocs Material docs on GitHub Pages
+- Identity parsing + Policy C title matching
 
-- Package skeleton (`pyproject.toml`, Apache-2.0 license, typed `src` layout)
-- Ported media identity parsing and Policy C title matching
-- Ported `CoverArtCacheRecord` / `ArtDisplayFields` models
-- MkDocs Material docs scaffold + CI (pytest, basedpyright, `mkdocs build --strict`)
+## 0.1.0.dev0 (Phase 0)
+
+- Package skeleton, identity/title_match/models, CI, docs scaffold

@@ -2,21 +2,26 @@
 
 Resolve and cache film/TV **cover art** for library paths under `Films` and `TV`, using Radarr/Sonarr first and TMDB as fallback.
 
-## Status
+## Install
 
-**Phase 0** — identity parsing, Policy C title matching, and cache models are available now. The sync client (`CoverArtClient.ensure_posters`, resolve, hydrate, purge) lands in Phase 1.
+```bash
+pip install "media-cover-art @ git+https://github.com/schleising/media-cover-art.git@v0.1.0"
+```
 
 ## Quick start
 
 ```python
-from media_cover_art import parse_media_identity
+from media_cover_art import CoverArtClient, CoverArtSettings, parse_media_identity
 
 identity = parse_media_identity(
-    "/Media/TV/100 Foot Wave/Season 1/"
-    "100 Foot Wave - S01E01 - Chapter I – Sea Monsters WEBDL-1080p.mkv"
+    "/Media/Films/1917 (2019)/1917 (2019) Bluray-1080p.mkv"
 )
-print(identity.cache_key)      # tvshow:100-foot-wave
-print(identity.display_title)  # 100 Foot Wave · S01E01 · Chapter I – Sea Monsters
+
+with CoverArtClient(CoverArtSettings.from_env()) as client:
+    client.ensure_posters([identity.source_path])
+    record = client.get_ready_record(identity.source_path)
 ```
 
-See [Install](install.md) and the [API reference](api.md).
+See [Install](install.md), [Configuration](configuration.md), and the [API reference](api.md).
+
+Published docs: [https://schleising.github.io/media-cover-art/](https://schleising.github.io/media-cover-art/)
