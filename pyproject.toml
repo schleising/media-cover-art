@@ -36,7 +36,7 @@ dev = [
   "basedpyright>=1.18",
 ]
 docs = [
-  "mkdocs-material>=9.5",
+  "zensical>=0.0.38",
   "mkdocstrings[python]>=0.26",
 ]
 

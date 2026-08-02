@@ -46,7 +46,7 @@ with CoverArtClient(CoverArtSettings.from_env()) as client:
 ## Documentation
 
 - Published: https://schleising.github.io/media-cover-art/
-- Local: `pip install -e ".[docs]" && mkdocs serve`
+- Local: `pip install -e ".[docs]" && zensical serve`
 
 ## Development
 
@@ -54,7 +54,7 @@ with CoverArtClient(CoverArtSettings.from_env()) as client:
 pip install -e ".[dev,docs]"
 pytest
 basedpyright
-mkdocs build --strict
+zensical build --strict
 ```
 
 ## License

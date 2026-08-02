@@ -1,0 +1,50 @@
+[project]
+site_name = "Media Cover Art"
+site_description = "Resolve and cache film/TV cover art from Radarr, Sonarr, and TMDB"
+site_url = "https://schleising.github.io/media-cover-art/"
+repo_url = "https://github.com/schleising/media-cover-art"
+repo_name = "schleising/media-cover-art"
+
+nav = [
+  { "Home" = "index.md" },
+  { "Install" = "install.md" },
+  { "Configuration" = "configuration.md" },
+  { "Usage" = [
+    { "Walker" = "usage/walker.md" },
+    { "website3" = "usage/website3.md" },
+    { "Push notifications" = "usage/push-notifications.md" },
+  ]},
+  { "Architecture" = "architecture.md" },
+  { "Identity & matching" = "identity.md" },
+  { "API reference" = "api.md" },
+  { "Changelog" = "changelog.md" },
+]
+
+[project.theme]
+variant = "classic"
+features = [
+  "navigation.sections",
+  "navigation.top",
+  "content.code.copy",
+  "search.suggest",
+]
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "indigo"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "indigo"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+show_source = true
+members_order = "source"

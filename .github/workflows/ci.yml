@@ -20,5 +20,5 @@ jobs:
         run: pytest
       - name: BasedPyright
         run: basedpyright
-      - name: MkDocs strict build
-        run: mkdocs build --strict
+      - name: Zensical strict build
+        run: zensical build --strict
