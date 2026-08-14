@@ -12,7 +12,7 @@ def test_from_env_reports_env_key_sources(
     monkeypatch.setenv("RADARR_API_KEY", "radarr-secret")
     monkeypatch.delenv("TMDB_API_KEY", raising=False)
 
-    with caplog.at_level(logging.INFO, logger="media_cover_art.config"):
+    with caplog.at_level(logging.DEBUG, logger="media_cover_art.config"):
         settings = CoverArtSettings.from_env()
         settings.log_key_status()
 
@@ -34,7 +34,7 @@ def test_from_env_reports_keys_file_sources(monkeypatch, caplog, tmp_path) -> No
         encoding="utf-8",
     )
 
-    with caplog.at_level(logging.INFO, logger="media_cover_art.config"):
+    with caplog.at_level(logging.DEBUG, logger="media_cover_art.config"):
         settings = CoverArtSettings.from_env(keys_file=keys_file)
         settings.log_key_status()
 

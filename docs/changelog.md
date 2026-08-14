@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Log Arr key found/not-found status at DEBUG instead of INFO/WARNING
+- Migrate docs from MkDocs Material to Zensical, with GitHub Pages deploy in CI
+
 ## 0.1.3
 
 - Also look for Arr keys at `/src/secrets/arr-keys.txt` (convert-to-h265 Walker mount)

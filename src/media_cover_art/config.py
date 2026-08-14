@@ -80,9 +80,9 @@ class CoverArtSettings:
     def log_key_status(self) -> None:
         """Log whether Sonarr, Radarr, and TMDB API keys were found."""
         if self.keys_file_path:
-            logger.info("Arr keys file found: %s", self.keys_file_path)
+            logger.debug("Arr keys file found: %s", self.keys_file_path)
         else:
-            logger.info(
+            logger.debug(
                 "Arr keys file not found (checked explicit path, "
                 "/run/secrets/arr-keys.txt, /app/secrets/arr-keys.txt, "
                 "/src/secrets/arr-keys.txt)"
@@ -293,9 +293,9 @@ def _resolve_secret(
 
 def _log_one_key(label: str, value: str | None, source: str | None) -> None:
     if value:
-        logger.info("%s API key found (%s)", label, source or "present")
+        logger.debug("%s API key found (%s)", label, source or "present")
     else:
-        logger.warning("%s API key not found", label)
+        logger.debug("%s API key not found", label)
 
 
 def art_url_for_cache_key(
