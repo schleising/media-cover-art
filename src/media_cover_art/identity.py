@@ -77,6 +77,11 @@ def _strip_quality_and_ext(name: str) -> str:
     stem = Path(name).stem
     cleaned = QUALITY_TOKENS.sub(" ", stem)
     cleaned = re.sub(r"[._]+", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    # WEBRip-1080p leaves a dangling "-" after tokens are removed; keep real title hyphens.
+    cleaned = re.sub(r"\s*-\s*$", "", cleaned)
+    cleaned = re.sub(r"^\s*-\s*", "", cleaned)
+    cleaned = cleaned.strip(" -_.")
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned
 
@@ -92,6 +97,17 @@ def _parse_title_year(folder_or_name: str) -> tuple[str, int | None]:
         return year_match.group("title").strip(), int(year_match.group("year"))
 
     return text, None
+
+
+def _titles_are_related(left: str, right: str) -> bool:
+    """Return True when Policy C would relate the two titles either way."""
+    # Lazy import avoids a circular import with title_match → identity.
+    from .title_match import rank_title_match
+
+    return (
+        rank_title_match(left, right) is not None
+        or rank_title_match(right, left) is not None
+    )
 
 
 def _path_parts(source_path: str) -> list[str]:
@@ -148,10 +164,25 @@ def _parse_film(source_path: str, parts: list[str], films_index: int) -> MediaId
     if films_index + 1 < len(parts) - 1:
         folder = parts[films_index + 1]
 
+    basename_title, basename_year = _parse_title_year(_strip_quality_and_ext(basename))
+
     if folder:
-        title, year = _parse_title_year(folder)
+        folder_title, folder_year = _parse_title_year(folder)
+        # Prefer the release basename when the folder title is unrelated (common when
+        # Radarr still has a placeholder / pre-release folder name).
+        if (
+            basename_title
+            and folder_title
+            and not _titles_are_related(folder_title, basename_title)
+        ):
+            title = basename_title
+            year = basename_year if basename_year is not None else folder_year
+        else:
+            title = folder_title
+            year = folder_year if folder_year is not None else basename_year
     else:
-        title, year = _parse_title_year(_strip_quality_and_ext(basename))
+        title = basename_title
+        year = basename_year
 
     display = f"{title} ({year})" if year is not None else title
     cache_key = f"film:{_slug_for_cache(title)}"

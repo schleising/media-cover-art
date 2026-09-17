@@ -15,7 +15,7 @@ from .cache import CoverArtCache, open_collection
 from .config import CoverArtSettings
 from .identity import MediaIdentity, parse_media_identity
 from .models import ArtDisplayFields, ArtProvider, CoverArtCacheRecord
-from .tmdb_client import TmdbClient
+from .tmdb_client import TmdbClient, TmdbPosterResult
 
 logger = logging.getLogger("media_cover_art.client")
 
@@ -320,6 +320,17 @@ class CoverArtClient:
                 download_api_key=arr_result.api_key if arr_result.use_api_key else None,
             )
 
+        # Arr may know the title (and TMDB id) even when its image list is empty.
+        tmdb_from_arr = self._tmdb_poster_from_arr_ids(identity)
+        if tmdb_from_arr is not None:
+            return self._persist_ready(
+                identity,
+                provider="tmdb",
+                provider_id=tmdb_from_arr.provider_id,
+                remote_url=tmdb_from_arr.remote_url,
+                matched_title=tmdb_from_arr.matched_title,
+            )
+
         tmdb_result = self._tmdb.lookup_poster(identity)
         if tmdb_result is not None:
             return self._persist_ready(
@@ -333,6 +344,26 @@ class CoverArtClient:
         missing = self._cache.mark_status(identity, "missing")
         self._cache.upsert_cache_record(missing)
         return missing
+
+    def _tmdb_poster_from_arr_ids(self, identity: MediaIdentity) -> TmdbPosterResult | None:
+        if identity.kind == "film":
+            item = self._arr.find_radarr_item(identity)
+            if item is None:
+                return None
+            tmdb_id = item.get("tmdbId")
+            if tmdb_id is None or not str(tmdb_id):
+                return None
+            return self._tmdb.lookup_movie_by_id(tmdb_id)
+        if identity.kind == "tv":
+            item = self._arr.find_sonarr_item(identity)
+            if item is None:
+                return None
+            # Prefer TMDB id when Sonarr has it; otherwise title search below.
+            tmdb_id = item.get("tmdbId")
+            if tmdb_id is None or not str(tmdb_id):
+                return None
+            return self._tmdb.lookup_tv_by_id(tmdb_id)
+        return None
 
     def _persist_ready(
         self,

@@ -54,6 +54,22 @@ class TmdbClient:
             return self._search_tv(api_key, identity)
         return None
 
+    def lookup_movie_by_id(self, tmdb_id: str | int) -> TmdbPosterResult | None:
+        """Fetch a film poster directly from TMDB by movie id."""
+        api_key = self._settings.tmdb_api_key
+        if not api_key:
+            return None
+        payload = self._tmdb_get(f"/movie/{tmdb_id}", api_key, {})
+        return _poster_from_item(payload if isinstance(payload, dict) else None)
+
+    def lookup_tv_by_id(self, tmdb_id: str | int) -> TmdbPosterResult | None:
+        """Fetch a TV poster directly from TMDB by series id."""
+        api_key = self._settings.tmdb_api_key
+        if not api_key:
+            return None
+        payload = self._tmdb_get(f"/tv/{tmdb_id}", api_key, {})
+        return _poster_from_item(payload if isinstance(payload, dict) else None)
+
     def download_image(self, url: str) -> tuple[bytes, str | None]:
         """Download a TMDB CDN image.
 

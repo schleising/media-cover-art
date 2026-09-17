@@ -22,8 +22,27 @@ class MediaIdentityTests(unittest.TestCase):
         )
         self.assertEqual(identity.kind, "film")
         self.assertEqual(identity.title, "Some Movie")
-        self.assertIsNone(identity.year)
-        self.assertEqual(identity.display_title, "Some Movie")
+        self.assertEqual(identity.year, 2018)
+        self.assertEqual(identity.display_title, "Some Movie (2018)")
+        self.assertEqual(identity.cache_key, "film:some-movie:2018")
+
+    def test_film_prefers_basename_when_folder_title_unrelated(self) -> None:
+        identity = parse_media_identity(
+            "/Media/Films/Untitled David Robert Mitchell Film (2026)/"
+            "The End of Oak Street 2026 WEBRip-1080p.mkv"
+        )
+        self.assertEqual(identity.kind, "film")
+        self.assertEqual(identity.title, "The End of Oak Street")
+        self.assertEqual(identity.year, 2026)
+        self.assertEqual(identity.display_title, "The End of Oak Street (2026)")
+        self.assertEqual(identity.cache_key, "film:the-end-of-oak-street:2026")
+
+    def test_film_strips_hyphen_joined_quality_tokens(self) -> None:
+        identity = parse_media_identity(
+            "/Media/Films/The End of Oak Street 2026 WEBRip-1080p.mkv"
+        )
+        self.assertEqual(identity.title, "The End of Oak Street")
+        self.assertEqual(identity.year, 2026)
 
     def test_tv_series_poster_key_and_episode_display(self) -> None:
         identity = parse_media_identity(

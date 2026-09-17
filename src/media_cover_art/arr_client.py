@@ -106,6 +106,17 @@ class ArrClient:
             )
             return None
         base_url = self._settings.radarr_url.rstrip("/")
+        item = self.find_radarr_item(identity)
+        return self._poster_from_item(
+            item, base_url, api_key, provider="radarr", id_keys=("tmdbId", "id")
+        )
+
+    def find_radarr_item(self, identity: MediaIdentity) -> dict[str, Any] | None:
+        """Find the best Radarr library/lookup item for an identity (may lack images)."""
+        api_key = self._settings.radarr_api_key
+        if not api_key:
+            return None
+        base_url = self._settings.radarr_url.rstrip("/")
         library = self._get_library(
             kind="Radarr",
             base_url=base_url,
@@ -114,32 +125,29 @@ class ArrClient:
             cache=self._radarr_cache,
         )
         item = find_item_by_title(library, identity.title, identity.year)
-        if item is None:
-            try:
-                lookup = self._request_json(
-                    base_url,
-                    api_key,
-                    "/api/v3/movie/lookup",
-                    {"term": identity.title},
+        if item is not None:
+            return item
+        try:
+            lookup = self._request_json(
+                base_url,
+                api_key,
+                "/api/v3/movie/lookup",
+                {"term": identity.title},
+            )
+            if isinstance(lookup, list):
+                return find_item_by_title(
+                    [entry for entry in lookup if isinstance(entry, dict)],
+                    identity.title,
+                    identity.year,
                 )
-                if isinstance(lookup, list):
-                    item = find_item_by_title(
-                        [entry for entry in lookup if isinstance(entry, dict)],
-                        identity.title,
-                        identity.year,
-                    )
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("Radarr lookup failed for %s: %s", identity.title, exc)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Radarr lookup failed for %s: %s", identity.title, exc)
+        return None
 
-        return self._poster_from_item(item, base_url, api_key, provider="radarr", id_keys=("tmdbId", "id"))
-
-    def _lookup_sonarr(self, identity: MediaIdentity) -> ArrPosterResult | None:
+    def find_sonarr_item(self, identity: MediaIdentity) -> dict[str, Any] | None:
+        """Find the best Sonarr library/lookup item for an identity (may lack images)."""
         api_key = self._settings.sonarr_api_key
         if not api_key:
-            logger.warning(
-                "Sonarr API key not configured; TV lookup skipped for %s",
-                identity.cache_key,
-            )
             return None
         base_url = self._settings.sonarr_url.rstrip("/")
         library = self._get_library(
@@ -150,22 +158,34 @@ class ArrClient:
             cache=self._sonarr_cache,
         )
         item = find_item_by_title(library, identity.title)
-        if item is None:
-            try:
-                lookup = self._request_json(
-                    base_url,
-                    api_key,
-                    "/api/v3/series/lookup",
-                    {"term": identity.title},
+        if item is not None:
+            return item
+        try:
+            lookup = self._request_json(
+                base_url,
+                api_key,
+                "/api/v3/series/lookup",
+                {"term": identity.title},
+            )
+            if isinstance(lookup, list):
+                return find_item_by_title(
+                    [entry for entry in lookup if isinstance(entry, dict)],
+                    identity.title,
                 )
-                if isinstance(lookup, list):
-                    item = find_item_by_title(
-                        [entry for entry in lookup if isinstance(entry, dict)],
-                        identity.title,
-                    )
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("Sonarr lookup failed for %s: %s", identity.title, exc)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Sonarr lookup failed for %s: %s", identity.title, exc)
+        return None
 
+    def _lookup_sonarr(self, identity: MediaIdentity) -> ArrPosterResult | None:
+        api_key = self._settings.sonarr_api_key
+        if not api_key:
+            logger.warning(
+                "Sonarr API key not configured; TV lookup skipped for %s",
+                identity.cache_key,
+            )
+            return None
+        base_url = self._settings.sonarr_url.rstrip("/")
+        item = self.find_sonarr_item(identity)
         return self._poster_from_item(
             item, base_url, api_key, provider="sonarr", id_keys=("tvdbId", "id")
         )
@@ -271,10 +291,19 @@ def find_item_by_title(
 
     def candidate_titles(item: dict[str, Any]) -> list[str]:
         values: list[str] = []
-        for key in ("title", "sortTitle", "cleanTitle"):
+        for key in ("title", "sortTitle", "cleanTitle", "originalTitle"):
             value = item.get(key)
             if value:
                 values.append(str(value))
+        alternatives = item.get("alternativeTitles")
+        if isinstance(alternatives, list):
+            for entry in alternatives:
+                if isinstance(entry, dict):
+                    alt_title = entry.get("title")
+                    if alt_title:
+                        values.append(str(alt_title))
+                elif isinstance(entry, str) and entry.strip():
+                    values.append(entry)
         return values
 
     def item_year(item: dict[str, Any]) -> int | None:
