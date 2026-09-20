@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+- Prefer the release basename when a Radarr folder title is unrelated (e.g. Untitled… folders whose files were renamed)
+- Strip dangling quality hyphens from titles, match Arr `alternativeTitles`, and fall back to TMDB-by-id when Arr has no poster
+
 ## 0.1.4
 
 - Log Arr key found/not-found status at DEBUG instead of INFO/WARNING
