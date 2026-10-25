@@ -100,6 +100,27 @@ class TitleMatchTests(unittest.TestCase):
         assert match is not None
         self.assertEqual(match["id"], 1)
 
+    def test_reordered_words_beat_parent_and_near_title(self) -> None:
+        library = [
+            {"title": "LOL: Last One Laughing UK", "id": 1},
+            {"title": "LOL: Last One Laughing UK - Halloween", "id": 2},
+            {"title": "LOL: Last One Laughing", "id": 3},
+        ]
+        match = find_item_by_title(library, "LOL Last One Laughing Halloween UK")
+        self.assertIsNotNone(match)
+        assert match is not None
+        self.assertEqual(match["id"], 2)
+
+    def test_exact_order_beats_reordered_words(self) -> None:
+        library = [
+            {"title": "LOL: Last One Laughing UK - Halloween", "id": 2},
+            {"title": "LOL: Last One Laughing Halloween UK", "id": 4},
+        ]
+        match = find_item_by_title(library, "LOL Last One Laughing Halloween UK")
+        self.assertIsNotNone(match)
+        assert match is not None
+        self.assertEqual(match["id"], 4)
+
     def test_rank_tiers(self) -> None:
         exact = rank_title_match(
             "Star Trek Strange New Worlds",
@@ -112,6 +133,26 @@ class TitleMatchTests(unittest.TestCase):
         self.assertEqual(exact[0], 3)
         self.assertEqual(parent[0], 1)
         self.assertIsNone(rank_title_match("100 Foot Wave", "Star Trek"))
+        reordered = rank_title_match(
+            "LOL Last One Laughing Halloween UK",
+            "LOL: Last One Laughing UK - Halloween",
+        )
+        ordered = rank_title_match(
+            "LOL Last One Laughing Halloween UK",
+            "LOL: Last One Laughing Halloween UK",
+        )
+        self.assertIsNotNone(reordered)
+        self.assertIsNotNone(ordered)
+        assert reordered is not None and ordered is not None
+        self.assertEqual(reordered[0], 3)
+        self.assertGreater(ordered, reordered)
+        self.assertGreater(reordered, parent)
+        self.assertIsNone(
+            rank_title_match(
+                "LOL Last One Laughing Halloween UK",
+                "LOL: Last One Laughing UK",
+            )
+        )
 
     def test_pick_best_uses_custom_title_keys(self) -> None:
         results = [

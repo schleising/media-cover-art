@@ -15,7 +15,8 @@
 Spinoff-safe ranking used by Arr/TMDB pickers:
 
 1. Punctuation-folded exact match
-2. Query ⊆ candidate (prefer longer)
-3. Candidate ⊆ query (parent franchise), still longest
+2. Same words in any order (exact order still wins)
+3. Query ⊆ candidate (prefer longer)
+4. Candidate ⊆ query (parent franchise), still longest
 
 See `fold_title_for_match`, `rank_title_match`, and `pick_best_item_by_title` in the [API reference](api.md).

@@ -3,8 +3,9 @@
 Policy C (spinoff-safe):
 
 1. Punctuation-folded exact match
-2. Query tokens are a prefix / contained-as-words in the candidate (prefer longer)
-3. Last resort: candidate is a prefix / contained in the query (parent franchise),
+2. Same words in any order (exact order still wins)
+3. Query tokens are a prefix / contained-as-words in the candidate (prefer longer)
+4. Last resort: candidate is a prefix / contained in the query (parent franchise),
    still preferring the longest candidate
 """
 
@@ -64,9 +65,12 @@ def rank_title_match(query: str, candidate: str) -> tuple[int, int] | None:
 
     Higher tuple is better: ``(tier, folded_length)``.
 
-    - tier 3 = exact
+    - tier 3 = exact, or the same words in a different order
     - tier 2 = query ⊆ candidate
     - tier 1 = candidate ⊆ query (parent franchise)
+
+    A reordered match stays on tier 3 and uses ``folded_length - 1``, so the
+    same words in the original order still rank above it.
 
     Args:
         query: Title from the media path / identity.
@@ -85,6 +89,9 @@ def rank_title_match(query: str, candidate: str) -> tuple[int, int] | None:
 
     needle_tokens = needle.split()
     candidate_tokens = normalized.split()
+    if needle_tokens and candidate_tokens and sorted(needle_tokens) == sorted(candidate_tokens):
+        # Same words, different order. Stay below an exact-order match of this length.
+        return (3, max(len(normalized) - 1, 0))
     if not needle_tokens or not candidate_tokens:
         return None
 
