@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6
+
+- Rank title matches that share the same words in any order above subset/parent-franchise matches
+
 ## 0.1.5
 
 - Prefer the release basename when a Radarr folder title is unrelated (e.g. Untitled… folders whose files were renamed)
